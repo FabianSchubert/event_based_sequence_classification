@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NJOBS=9
+NJOBS=10
 
 cd ../..
 

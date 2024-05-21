@@ -38,7 +38,7 @@ neur_h = create_custom_neuron_class(
         $(r) = {act_func("$(x)")};
         $(dr) = {d_act_func("$(x)")};
         //$(err_fb) += 1.1 * (r_prev - $(r));
-        $(err_fb) -= 0.005 * ($(r) > 0.0);
+        $(err_fb) -= 0.01 * ($(r) > 0.0);
         //$(r_event) *= (1. - DT);
 
         $(db) += $(err_fb) * $(dr);
@@ -75,16 +75,18 @@ neur_o = create_custom_neuron_class(
         //$(targ) += DT * ($(Isyn) - $(targ));
         $(targ) = $(Isyn);
 
+        //$(r) = $(x);
         //$(r) = max(0.0, $(x));
         //$(r) = min(1.0, max(0.0, $(x)));
-        $(r) = 1./(1. + exp(-$(x)));
-        //$(r) = max(0.0, tanh($(x)));
+        //$(r) = 1./(1. + exp(-$(x)));
+        $(r) = max(0.0, tanh($(x)));
         //$(dr) = (($(x) > 0.0) && ($(x) < 1.0) ? 1.0 : 0.0);
         //$(dr) = ($(x) > 0.0 ? 1.0 : 0.0);
-        $(dr) = $(r) * (1. - $(r));
-        //$(dr) = $(x) < 0.0 ? 0.0 : (1.0 - tanh($(x))*tanh($(x)));
-        
-        $(err) = $(targ) - $(r);
+        //$(dr) = 1.0;
+        //$(dr) = $(r) * (1. - $(r));
+        $(dr) = $(x) < 0.0 ? 0.0 : (1.0 - tanh($(x))*tanh($(x)));
+        $(err) = $(targ) - $(r) - 0.005 * ($(r) > 0.0);
+
         $(loss) += 0.5 * $(err) * $(err);
 
         $(db) += $(err) * $(dr);

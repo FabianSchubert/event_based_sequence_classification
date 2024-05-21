@@ -518,6 +518,7 @@ class NetworkGestureBufferFF(NetworkBase):
             nt_epoch += inputs.shape[1]
 
         evidence = np.zeros((self.n_batch, nt_epoch, self.N_O))
+        evidence_bin = np.zeros((self.n_batch, nt_epoch, self.N_O))
 
         label_pred = [[] * self.n_batch]
         label_targ = [[] * self.n_batch]
@@ -526,6 +527,8 @@ class NetworkGestureBufferFF(NetworkBase):
 
         gesture_detected = [False] * self.n_batch
         gesture_detected_corr = [False] * self.n_batch
+
+        t_start_detect = [0] * self.n_batch
 
         t = 0
 
@@ -567,6 +570,7 @@ class NetworkGestureBufferFF(NetworkBase):
             targ_view = self.p_o.vars["targ"].view
 
             evidence_rec = np.zeros((self.n_batch, _nt, self.N_O))
+            evidence_rec_bin = np.zeros((self.n_batch, _nt, self.N_O))
 
             for _t in range(_nt):
                 self.network.step_time()
@@ -596,11 +600,13 @@ class NetworkGestureBufferFF(NetworkBase):
                 targ_rec[:, _t] = targ_view
 
                 if t > 0:
+                    _o = self.p_o.vars["r"].view.reshape((self.n_batch, -1))
+
                     #_o = (self.p_o.vars["r"].view + 1e-3).reshape((self.n_batch, -1))
                     #_o /= _o.sum(axis=1, keepdims=True)
 
-                    _o = np.zeros((self.n_batch, self.N_O))
-                    _o[np.arange(self.n_batch), np.argmax(o_view.reshape((self.n_batch, -1)), axis=1)] = 1.0
+                    #_o = np.zeros((self.n_batch, self.N_O))
+                    #_o[np.arange(self.n_batch), np.argmax(o_view.reshape((self.n_batch, -1)), axis=1)] = 1.0
 
                     # _o = self.p_o.vars["r"].view.reshape((self.n_batch, -1))
                     # _o = np.exp(_o) / np.exp(_o).sum(axis=1, keepdims=True)
@@ -611,8 +617,17 @@ class NetworkGestureBufferFF(NetworkBase):
 
                     evidence_rec[:, _t] = evidence[:, t]
 
+                    evidence_bin[:, t] = np.zeros((self.n_batch, self.N_O))
+                    evidence_bin[np.arange(self.n_batch), t, np.argmax(evidence[:, t], axis=1)] = 1.0
+
+                    evidence_rec_bin[:, _t] = evidence_bin[:, t]
+
                     _ev_sm_prev = evidence[:, t - 1, :-1].sum(axis=1)
                     _ev_sm = evidence[:, t, :-1].sum(axis=1)
+                    #_ev_sm_prev = 1.-evidence[:, t - 1, -1]
+                    #_ev_sm = 1.-evidence[:, t, -1]
+                    #_ev_sm_prev = 1.*(np.argmax(evidence[:, t - 1, :], axis=1) != 10)
+                    #_ev_sm = 1.*(np.argmax(evidence[:, t, :], axis=1) != 10)
 
                     _label = np.argmax(targets[:, _t], axis=1)
                     _label_prev = np.argmax(targets[:, _t - 1], axis=1)
@@ -630,10 +645,11 @@ class NetworkGestureBufferFF(NetworkBase):
 
                         if (_ev_sm[k] >= ev_th) and (_ev_sm_prev[k] < ev_th):
                             gesture_detected[k] = True
+                            t_start_detect[k] = t
 
                         if (_ev_sm[k] < ev_th) and (_ev_sm_prev[k] >= ev_th):
                             if gesture_detected_corr[k]:
-                                label_pred[k][-1] = np.argmax(evidence[k, t, :-1])
+                                label_pred[k][-1] = np.argmax(evidence[k, t_start_detect[k]:t, :-1].sum(axis=0))
                             else:
                                 false_pos[k][-1] = True
 
@@ -668,6 +684,7 @@ class NetworkGestureBufferFF(NetworkBase):
                 o_x_rec,
                 targ_rec,
                 evidence_rec,
+                evidence_rec_bin,
                 spike_data,
             )
 
@@ -682,6 +699,7 @@ class NetworkGestureBufferFF(NetworkBase):
             o_x_rec,
             targ_rec,
             evidence_rec,
+            evidence_rec_bin,
         )
 
 

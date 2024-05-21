@@ -125,6 +125,7 @@ loss, T = network.train_network(
     o_x_rec,
     targ_rec,
     evidence_rec,
+    evidence_rec_bin,
     spike_rec,
 ) = network.test_network(
     testloader,
@@ -132,6 +133,7 @@ loss, T = network.train_network(
     return_spike_rec=True,
     randomize_t_buffer_offset=RANDOMIZE_T_BUFFER_OFFSET,
 )
+
 
 
 print("test loss: ", 0.5 * ((targ_rec - o_rec) ** 2.0).mean())
@@ -142,6 +144,20 @@ if EVENT_BASED:
     ax[0].plot(spike_rec["p_i"][0], spike_rec["p_i"][1], ".", markersize=1)
     ax[1].plot(spike_rec["p_h"][0], spike_rec["p_h"][1], ".", markersize=1)
     ax[2].plot(spike_rec["p_o"][0], spike_rec["p_o"][1], ".", markersize=1)
+
+    ax[0].set_title("input")
+    ax[1].set_title("hidden")
+    ax[2].set_title("output")
+
+    ax[0].set_xlabel("time steps")
+    ax[1].set_xlabel("time steps")
+    ax[2].set_xlabel("time steps")
+
+    ax[0].set_ylabel("neuron index")
+    ax[1].set_ylabel("neuron index")
+    ax[2].set_ylabel("neuron index")
+
+    fig.tight_layout()
 
     fig.savefig(
         os.path.join(
@@ -156,6 +172,18 @@ fig, ax = plt.subplots(2, 1)
 ax[0].pcolormesh(targ_rec[0, :1000].T)
 # ax[1].pcolormesh(o_rec[0, :1000].T)
 ax[1].pcolormesh(evidence_rec[0, :1000].T)
+#ax[1].pcolormesh(evidence_rec_bin[0, :1000].T)
+
+ax[0].set_title("target")
+ax[1].set_title("prediction")
+
+ax[0].set_xlabel("time steps")
+ax[1].set_xlabel("time steps")
+
+ax[0].set_ylabel("class index")
+ax[1].set_ylabel("class index")
+
+fig.tight_layout()
 
 fig.savefig(
     os.path.join(
@@ -168,7 +196,9 @@ plt.close()
 
 fig, ax = plt.subplots()
 ax.plot(loss)
-ax.set_yscale("log")
+#ax.set_yscale("log")
+ax.set_xlabel("epoch")
+ax.set_ylabel("MSE loss")
 
 fig.savefig(
     os.path.join(
@@ -217,4 +247,5 @@ np.savez(
     o_rec=o_rec,
     targ_rec=targ_rec,
     train_time=T,
+    train_loss=loss,
 )

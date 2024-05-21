@@ -225,7 +225,7 @@ extern "C" __global__ void updateNeuronsKernel(float t, unsigned int recordingTi
                 scalar lcsdt_data = group->dt_dataCS0[lid];
                 scalar lcst_data = group->t_dataCS0[lid];
                 
-                const int nt_data_max_int = int((1.59500000000000000e+03f));
+                const int nt_data_max_int = int((1.14000000000000000e+03f));
                 const int dims_data_int = int((1.10000000000000000e+01f));
                 const int t_buffer_int = int((1.00000000000000000e+00f));
                 
@@ -262,16 +262,18 @@ extern "C" __global__ void updateNeuronsKernel(float t, unsigned int recordingTi
             //ltarg += DT * (Isyn - ltarg);
             ltarg = Isyn;
             
+            //lr = lx;
             //lr = max(0.0f, lx);
             //lr = min(1.0f, max(0.0f, lx));
-            lr = 1.f/(1.f + exp(-lx));
-            //lr = max(0.0f, tanh(lx));
+            //lr = 1.f/(1.f + exp(-lx));
+            lr = max(0.0f, tanh(lx));
             //ldr = ((lx > 0.0f) && (lx < 1.0f) ? 1.0f : 0.0f);
             //ldr = (lx > 0.0f ? 1.0f : 0.0f);
-            ldr = lr * (1.f - lr);
-            //ldr = lx < 0.0f ? 0.0f : (1.0f - tanh(lx)*tanh(lx));
+            //ldr = 1.0f;
+            //ldr = lr * (1.f - lr);
+            ldr = lx < 0.0f ? 0.0f : (1.0f - tanh(lx)*tanh(lx));
+            lerr = ltarg - lr - 0.005f * (lr > 0.0f);
             
-            lerr = ltarg - lr;
             lloss += 0.5f * lerr * lerr;
             
             ldb += lerr * ldr;
@@ -337,7 +339,7 @@ extern "C" __global__ void updateNeuronsKernel(float t, unsigned int recordingTi
                 scalar lcsdt_data = group->dt_dataCS0[lid];
                 scalar lcst_data = group->t_dataCS0[lid];
                 
-                const int nt_data_max_int = int((1.59500000000000000e+03f));
+                const int nt_data_max_int = int((1.14000000000000000e+03f));
                 const int dims_data_int = int((5.00000000000000000e+02f));
                 const int t_buffer_int = int((1.00000000000000000e+00f));
                 
@@ -452,7 +454,7 @@ extern "C" __global__ void updateNeuronsKernel(float t, unsigned int recordingTi
             lr = ((lx) < 0.0f ? 0.0f : (lx));
             ldr = ((lx) < 0.0f ? 0.0f : 1.0f);
             //lerr_fb += 1.1f * (r_prev - lr);
-            lerr_fb -= 0.005f * (lr > 0.0f);
+            lerr_fb -= 0.01f * (lr > 0.0f);
             //lr_event *= (1.f - DT);
             
             ldb += lerr_fb * ldr;
