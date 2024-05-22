@@ -1,5 +1,5 @@
-from pygenn.genn_model import init_var
 import numpy as np
+import json
 
 N_EPOCHS = 100
 
@@ -12,7 +12,7 @@ N_O = 11
 
 N_BATCH = 1
 
-#DT = 0.05
+# DT = 0.05
 DT = 0.25
 
 TAU_H = 2.5
@@ -34,7 +34,7 @@ USE_KERNEL_EMBEDDING = True
 
 RANDOMIZE_T_BUFFER_OFFSET = True
 
-R_EMBED = 10.
+R_EMBED = 10.0
 N_EMBED = 500
 R_STEP_FACTOR = 1.25
 
@@ -81,7 +81,7 @@ P_O_VAR_INIT = {
 
 W_HI_PARAMS = {"w_penalty": 0e-3}
 W_HI_VAR_INIT = {
-    "g": init_var("Normal", {"mean": 0.0, "sd": 0.5 / np.sqrt(N_DIM_DATA * T_BUFFER)}),
+    "g": ("Normal", {"mean": 0.0, "sd": 0.5 / np.sqrt(N_DIM_DATA * T_BUFFER)}),
     "inp_prev": 0.0,
     "dg": 0.0,
     "dg_prev": 0.0,
@@ -89,7 +89,7 @@ W_HI_VAR_INIT = {
 
 W_OH_PARAMS = {"w_penalty": 0e-4}
 W_OH_VAR_INIT = {
-    "g": init_var("Normal", {"mean": 0.0, "sd": 0.5 / np.sqrt(N_H)}),
+    "g": ("Normal", {"mean": 0.0, "sd": 0.5 / np.sqrt(N_H)}),
     "inp_prev": 0.0,
     "dg": 0.0,
     "dg_prev": 0.0,
@@ -97,7 +97,7 @@ W_OH_VAR_INIT = {
 
 W_HO_PARAMS = {"w_penalty": 0e-4}
 W_HO_VAR_INIT = {
-    "g": init_var("Normal", {"mean": 0.0, "sd": 0.5 / np.sqrt(N_O)}),
+    "g": ("Normal", {"mean": 0.0, "sd": 0.5 / np.sqrt(N_O)}),
     "inp_prev": 0.0,
     "dg": 0.0,
     "dg_prev": 0.0,
@@ -155,3 +155,36 @@ MOD_PARAMS = {
     "w_ho_var_init": W_HO_VAR_INIT,
     "w_ho_opt_params": W_HO_OPT_PARAMS,
 }
+
+SETTINGS = {
+    "N_EPOCHS": N_EPOCHS,
+    "N_FOLDS": N_FOLDS,
+    "N_DIM_DATA": N_DIM_DATA,
+    "T_BUFFER": T_BUFFER,
+    "N_H": N_H,
+    "N_O": N_O,
+    "DT": DT,
+    "TAU_H": TAU_H,
+    "EVIDENCE_THRESHOLD": EVIDENCE_THRESHOLD,
+    "TAU_EVIDENCE": TAU_EVIDENCE,
+    "EVENT_BASED": EVENT_BASED,
+    "INPUT_FILES": INPUT_FILES,
+    "TRAIN_SPLIT": TRAIN_SPLIT,
+    "SPIKE_RECORDING_POPS": SPIKE_RECORDING_POPS,
+    "MAX_SPIKE_RECORDING_STEPS": MAX_SPIKE_RECORDING_STEPS,
+    "INPUT_MODE": INPUT_MODE,
+    "USE_KERNEL_EMBEDDING": USE_KERNEL_EMBEDDING,
+    "RANDOMIZE_T_BUFFER_OFFSET": RANDOMIZE_T_BUFFER_OFFSET,
+    "R_EMBED": R_EMBED,
+    "N_EMBED": N_EMBED,
+    "R_STEP_FACTOR": R_STEP_FACTOR,
+    "MOD_PARAMS": MOD_PARAMS,
+    "N_BATCH": N_BATCH,
+    "LR_SCALE": LR_SCALE,
+    "default_adam_params": default_adam_params,
+}
+
+
+if __name__ == "__main__":
+    with open("settings.json", "w") as f:
+        json.dump(SETTINGS, f)

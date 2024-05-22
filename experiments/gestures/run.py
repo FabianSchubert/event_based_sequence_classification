@@ -16,34 +16,56 @@ from gesture_dataset.DataSet import UniHHIMUGestures, generate_train_test_split
 
 import os
 
-from .settings import (
-    INPUT_FILES,
-    N_BATCH,
-    N_DIM_DATA,
-    T_BUFFER,
-    N_H,
-    N_O,
-    DT,
-    TAU_EVIDENCE,
-    N_EPOCHS,
-    EVENT_BASED,
-    EVIDENCE_THRESHOLD,
-    MOD_PARAMS,
-    N_FOLDS,
-    TRAIN_SPLIT,
-    SPIKE_RECORDING_POPS,
-    MAX_SPIKE_RECORDING_STEPS,
-    INPUT_MODE,
-    RANDOMIZE_T_BUFFER_OFFSET,
-    USE_KERNEL_EMBEDDING,
-    R_EMBED,
-    N_EMBED,
-    R_STEP_FACTOR,
+import json
+
+import argparse
+
+FILE_BASE = os.path.dirname(__file__)
+
+with open(os.path.join(FILE_BASE, "settings.json"), "r") as f:
+    SETTINGS = json.load(f)
+
+
+INPUT_FILES = SETTINGS["INPUT_FILES"]
+N_BATCH = SETTINGS["N_BATCH"]
+N_DIM_DATA = SETTINGS["N_DIM_DATA"]
+T_BUFFER = SETTINGS["T_BUFFER"]
+N_H = SETTINGS["N_H"]
+N_O = SETTINGS["N_O"]
+DT = SETTINGS["DT"]
+TAU_EVIDENCE = SETTINGS["TAU_EVIDENCE"]
+N_EPOCHS = SETTINGS["N_EPOCHS"]
+EVENT_BASED = SETTINGS["EVENT_BASED"]
+EVIDENCE_THRESHOLD = SETTINGS["EVIDENCE_THRESHOLD"]
+MOD_PARAMS = SETTINGS["MOD_PARAMS"]
+N_FOLDS = SETTINGS["N_FOLDS"]
+TRAIN_SPLIT = SETTINGS["TRAIN_SPLIT"]
+SPIKE_RECORDING_POPS = SETTINGS["SPIKE_RECORDING_POPS"]
+MAX_SPIKE_RECORDING_STEPS = SETTINGS["MAX_SPIKE_RECORDING_STEPS"]
+INPUT_MODE = SETTINGS["INPUT_MODE"]
+RANDOMIZE_T_BUFFER_OFFSET = SETTINGS["RANDOMIZE_T_BUFFER_OFFSET"]
+USE_KERNEL_EMBEDDING = SETTINGS["USE_KERNEL_EMBEDDING"]
+R_EMBED = SETTINGS["R_EMBED"]
+N_EMBED = SETTINGS["N_EMBED"]
+R_STEP_FACTOR = SETTINGS["R_STEP_FACTOR"]
+
+
+parser = argparse.ArgumentParser(description="Gesture classification")
+parser.add_argument(
+    "--threshold_scale",
+    type=float,
+    default=1.0,
+    help="scale the threshold for the hidden and the output layer",
 )
 
-plt.style.use(
-    "https://raw.githubusercontent.com/FabianSchubert/mpl_style/main/custom_style.mplstyle"
-)
+args = parser.parse_args()
+
+TH_SCALE = args.threshold_scale
+
+SETTINGS["TH_SCALE"] = TH_SCALE
+
+MOD_PARAMS["p_h_params"]["th"] *= TH_SCALE
+MOD_PARAMS["p_o_params"]["th"] *= TH_SCALE
 
 BASE_FOLD = os.path.dirname(__file__)
 
@@ -61,11 +83,19 @@ if USE_KERNEL_EMBEDDING:
     _seed = np.random.randint(int(1e6))
 
     for i, (inputs, targets) in enumerate(train_data):
-        train_data[i] = (step_kernel_embedding(
-            inputs, N_EMBED, R_EMBED, R_STEP_FACTOR, seed=_seed)[0], targets)
+        train_data[i] = (
+            step_kernel_embedding(inputs, N_EMBED, R_EMBED, R_STEP_FACTOR, seed=_seed)[
+                0
+            ],
+            targets,
+        )
     for i, (inputs, targets) in enumerate(test_data):
-        test_data[i] = (step_kernel_embedding(
-            inputs, N_EMBED, R_EMBED, R_STEP_FACTOR, seed=_seed)[0], targets)
+        test_data[i] = (
+            step_kernel_embedding(inputs, N_EMBED, R_EMBED, R_STEP_FACTOR, seed=_seed)[
+                0
+            ],
+            targets,
+        )
 
 
 trainset = UniHHIMUGestures(data=(train_data, test_data), train=True)
@@ -135,8 +165,12 @@ loss, T = network.train_network(
 )
 
 
-
 print("test loss: ", 0.5 * ((targ_rec - o_rec) ** 2.0).mean())
+
+plt.style.use(
+    "https://raw.githubusercontent.com/FabianSchubert/mpl_style/main/custom_style.mplstyle"
+)
+
 
 if EVENT_BASED:
     fig, ax = plt.subplots(3, 1, figsize=(10, 10))
@@ -172,7 +206,7 @@ fig, ax = plt.subplots(2, 1)
 ax[0].pcolormesh(targ_rec[0, :1000].T)
 # ax[1].pcolormesh(o_rec[0, :1000].T)
 ax[1].pcolormesh(evidence_rec[0, :1000].T)
-#ax[1].pcolormesh(evidence_rec_bin[0, :1000].T)
+# ax[1].pcolormesh(evidence_rec_bin[0, :1000].T)
 
 ax[0].set_title("target")
 ax[1].set_title("prediction")
@@ -196,7 +230,7 @@ plt.close()
 
 fig, ax = plt.subplots()
 ax.plot(loss)
-#ax.set_yscale("log")
+# ax.set_yscale("log")
 ax.set_xlabel("epoch")
 ax.set_ylabel("MSE loss")
 
@@ -248,4 +282,5 @@ np.savez(
     targ_rec=targ_rec,
     train_time=T,
     train_loss=loss,
+    settings=SETTINGS,
 )

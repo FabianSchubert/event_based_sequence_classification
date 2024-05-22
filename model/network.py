@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from pygenn.genn_model import GeNNModel, create_wu_var_ref, create_var_ref
+from pygenn.genn_model import GeNNModel, create_wu_var_ref, create_var_ref, init_var
 
-from .neurons import neur_h, neur_i, neur_o#, neur_r
+from .neurons import neur_h, neur_i, neur_o  # , neur_r
 from .synapses import (
     w_u_rec,
     w_u_rec_cont,
@@ -247,6 +247,13 @@ class NetworkGestureBufferFF(NetworkBase):
         else:
             self.W_HO_VAR_INIT["t_prev"] = 0.0
 
+        for _w_var_init in [self.W_HI_VAR_INIT, self.W_OH_VAR_INIT, self.W_HO_VAR_INIT]:
+            if isinstance(_w_var_init["g"], list):
+                assert len(_w_var_init["g"]) == 2
+                _init_type = _w_var_init["g"][0]
+                _init_params = _w_var_init["g"][1]
+                _w_var_init["g"] = init_var(_init_type, _init_params)
+
         self.network = GeNNModel("float", "BufferFF")
         self.network.dT = DT
         self.network.batch_size = n_batch
@@ -482,9 +489,9 @@ class NetworkGestureBufferFF(NetworkBase):
                 for t in range(_nt):
                     self.network.step_time()
 
-                    #self.network.custom_update("softmax1")
-                    #self.network.custom_update("softmax2")
-                    #self.network.custom_update("softmax3")
+                    # self.network.custom_update("softmax1")
+                    # self.network.custom_update("softmax2")
+                    # self.network.custom_update("softmax3")
 
                 self.network.custom_update("WeightChangeBatchReduce")
                 self.network.custom_update("BiasChangeBatchReduce")
@@ -493,7 +500,10 @@ class NetworkGestureBufferFF(NetworkBase):
                 self.weight_ho = self.weight_oh.T
 
                 # set the weight factors to the l1 norm of outgoing weights
-                self.p_h.vars["weight_factor"].view[:] = np.abs(self.weight_oh).sum(axis=0)/np.abs(self.weight_oh).sum(axis=0).mean()
+                self.p_h.vars["weight_factor"].view[:] = (
+                    np.abs(self.weight_oh).sum(axis=0)
+                    / np.abs(self.weight_oh).sum(axis=0).mean()
+                )
                 self.p_h.push_var_to_device("weight_factor")
 
             self.p_o.pull_var_from_device("loss")
@@ -509,7 +519,13 @@ class NetworkGestureBufferFF(NetworkBase):
 
         return loss, (t1 - t0)
 
-    def test_network(self, data_loader, ev_th=0.5, return_spike_rec=False, randomize_t_buffer_offset=False):
+    def test_network(
+        self,
+        data_loader,
+        ev_th=0.5,
+        return_spike_rec=False,
+        randomize_t_buffer_offset=False,
+    ):
         nt_epoch = 0
         for inputs, targets in data_loader:
             inputs = inputs.numpy()
@@ -575,9 +591,9 @@ class NetworkGestureBufferFF(NetworkBase):
             for _t in range(_nt):
                 self.network.step_time()
 
-                #self.network.custom_update("softmax1")
-                #self.network.custom_update("softmax2")
-                #self.network.custom_update("softmax3")
+                # self.network.custom_update("softmax1")
+                # self.network.custom_update("softmax2")
+                # self.network.custom_update("softmax3")
 
                 self.p_i.pull_var_from_device("r")
                 i_rec[:, _t] = i_view
@@ -602,32 +618,37 @@ class NetworkGestureBufferFF(NetworkBase):
                 if t > 0:
                     _o = self.p_o.vars["r"].view.reshape((self.n_batch, -1))
 
-                    #_o = (self.p_o.vars["r"].view + 1e-3).reshape((self.n_batch, -1))
-                    #_o /= _o.sum(axis=1, keepdims=True)
+                    # _o = (self.p_o.vars["r"].view + 1e-3).reshape((self.n_batch, -1))
+                    # _o /= _o.sum(axis=1, keepdims=True)
 
-                    #_o = np.zeros((self.n_batch, self.N_O))
-                    #_o[np.arange(self.n_batch), np.argmax(o_view.reshape((self.n_batch, -1)), axis=1)] = 1.0
+                    # _o = np.zeros((self.n_batch, self.N_O))
+                    # _o[np.arange(self.n_batch), np.argmax(o_view.reshape((self.n_batch, -1)), axis=1)] = 1.0
 
                     # _o = self.p_o.vars["r"].view.reshape((self.n_batch, -1))
                     # _o = np.exp(_o) / np.exp(_o).sum(axis=1, keepdims=True)
 
-                    evidence[:, t] = evidence[:, t - 1] + self.network.dT * (
-                        _o - evidence[:, t - 1]
-                    ) / self.tau_evidence
+                    evidence[:, t] = (
+                        evidence[:, t - 1]
+                        + self.network.dT
+                        * (_o - evidence[:, t - 1])
+                        / self.tau_evidence
+                    )
 
                     evidence_rec[:, _t] = evidence[:, t]
 
                     evidence_bin[:, t] = np.zeros((self.n_batch, self.N_O))
-                    evidence_bin[np.arange(self.n_batch), t, np.argmax(evidence[:, t], axis=1)] = 1.0
+                    evidence_bin[
+                        np.arange(self.n_batch), t, np.argmax(evidence[:, t], axis=1)
+                    ] = 1.0
 
                     evidence_rec_bin[:, _t] = evidence_bin[:, t]
 
                     _ev_sm_prev = evidence[:, t - 1, :-1].sum(axis=1)
                     _ev_sm = evidence[:, t, :-1].sum(axis=1)
-                    #_ev_sm_prev = 1.-evidence[:, t - 1, -1]
-                    #_ev_sm = 1.-evidence[:, t, -1]
-                    #_ev_sm_prev = 1.*(np.argmax(evidence[:, t - 1, :], axis=1) != 10)
-                    #_ev_sm = 1.*(np.argmax(evidence[:, t, :], axis=1) != 10)
+                    # _ev_sm_prev = 1.-evidence[:, t - 1, -1]
+                    # _ev_sm = 1.-evidence[:, t, -1]
+                    # _ev_sm_prev = 1.*(np.argmax(evidence[:, t - 1, :], axis=1) != 10)
+                    # _ev_sm = 1.*(np.argmax(evidence[:, t, :], axis=1) != 10)
 
                     _label = np.argmax(targets[:, _t], axis=1)
                     _label_prev = np.argmax(targets[:, _t - 1], axis=1)
@@ -649,7 +670,9 @@ class NetworkGestureBufferFF(NetworkBase):
 
                         if (_ev_sm[k] < ev_th) and (_ev_sm_prev[k] >= ev_th):
                             if gesture_detected_corr[k]:
-                                label_pred[k][-1] = np.argmax(evidence[k, t_start_detect[k]:t, :-1].sum(axis=0))
+                                label_pred[k][-1] = np.argmax(
+                                    evidence[k, t_start_detect[k] : t, :-1].sum(axis=0)
+                                )
                             else:
                                 false_pos[k][-1] = True
 
