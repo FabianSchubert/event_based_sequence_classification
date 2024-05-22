@@ -33,12 +33,10 @@ neur_h = create_custom_neuron_class(
         $(err_fb) = $(Isyn_err_fb);
 
         $(x) += DT * ($(Isyn) + $(b) - $(x)) / $(tau);
-        //$(x) = $(Isyn) + $(b);
         const scalar r_prev = $(r);
         $(r) = {act_func("$(x)")};
         $(dr) = {d_act_func("$(x)")};
-        //$(err_fb) += 1.1 * (r_prev - $(r));
-        $(err_fb) -= 0.01 * ($(r) > 0.0);
+        $(err_fb) -= $(gamma_sparsity) * ($(r) > 0.0);
         //$(r_event) *= (1. - DT);
 
         $(db) += $(err_fb) * $(dr);
@@ -50,7 +48,7 @@ neur_h = create_custom_neuron_class(
         $(r_prev_event) = $(r_event);
         $(r_event) = $(r);
     """,
-    param_names=["th", "tau"],
+    param_names=["th", "tau", "gamma_sparsity"],
     var_name_types=[
         ("r", "scalar"),
         ("x", "scalar"),
@@ -85,7 +83,7 @@ neur_o = create_custom_neuron_class(
         //$(dr) = 1.0;
         //$(dr) = $(r) * (1. - $(r));
         $(dr) = $(x) < 0.0 ? 0.0 : (1.0 - tanh($(x))*tanh($(x)));
-        $(err) = $(targ) - $(r) - 0.005 * ($(r) > 0.0);
+        $(err) = $(targ) - $(r) - $(gamma_sparsity) * ($(r) > 0.0);
 
         $(loss) += 0.5 * $(err) * $(err);
 
@@ -96,7 +94,7 @@ neur_o = create_custom_neuron_class(
         $(err_prev_event) = $(err_event);
         $(err_event) = $(err);
     """,
-    param_names=["th"],
+    param_names=["th", "gamma_sparsity"],
     var_name_types=[
         ("x", "scalar"),
         ("r", "scalar"),

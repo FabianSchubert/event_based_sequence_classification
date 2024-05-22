@@ -50,7 +50,7 @@ P_I_VAR_INIT = {
     "r_trace": 0.0,
 }
 
-P_H_PARAMS = {"th": 0.25, "tau": TAU_H}
+P_H_PARAMS = {"th": 0.25, "tau": TAU_H, "gamma_sparsity": 0.01}
 P_H_VAR_INIT = {
     "r": 0.0,
     # "r_trace": 0.0,
@@ -65,7 +65,7 @@ P_H_VAR_INIT = {
     "weight_factor": 1.0,
 }
 
-P_O_PARAMS = {"th": 0.025}
+P_O_PARAMS = {"th": 0.025, "gamma_sparsity": 0.005}
 P_O_VAR_INIT = {
     "x": 0.0,
     "targ": 0.0,
