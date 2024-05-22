@@ -1,3 +1,6 @@
+# Ignore .npz files
+*.npz
+
 # Ignore *_CODE folders
 *_CODE/
 
