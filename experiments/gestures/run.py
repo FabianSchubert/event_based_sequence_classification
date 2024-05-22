@@ -12,7 +12,7 @@ from datetime import datetime
 
 import numpy as np
 
-from datasets.gestures.DataSet import UniHHIMUGestures, generate_train_test_split
+from gesture_dataset.DataSet import UniHHIMUGestures, generate_train_test_split
 
 import os
 
@@ -49,7 +49,7 @@ BASE_FOLD = os.path.dirname(__file__)
 
 
 train_data, test_data = generate_train_test_split(
-    dataDir="./datasets/gestures/dataSets/",
+    dataDir="/home/fabian/Work/Repos/UHH-IMU-gestures-comparison/gesture_dataset/dataSets/",
     inputFiles=INPUT_FILES,
     train_split=TRAIN_SPLIT,
     shuffle=True,
