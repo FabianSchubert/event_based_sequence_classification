@@ -20,7 +20,7 @@ TAU_H = 2.5
 EVIDENCE_THRESHOLD = 0.3
 TAU_EVIDENCE = 1.0
 
-EVENT_BASED = True
+EVENT_BASED = False
 
 INPUT_FILES = ["na", "s", "j", "l", "ni"]
 
