@@ -2,6 +2,8 @@
 
 N_TRIALS=10
 
+python3 settings.py
+
 cd ../..
 
 N_SWEEP_TH=10

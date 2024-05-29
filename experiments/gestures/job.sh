@@ -2,6 +2,8 @@
 
 NJOBS=10
 
+python3 settings.py
+
 cd ../..
 
 for i in $( seq 1 $NJOBS )
