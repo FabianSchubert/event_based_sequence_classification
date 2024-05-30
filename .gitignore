@@ -1,3 +1,8 @@
+# Ignore the device_specifics.json file containing settingsthat
+# that differ for each machine (like absolute paths to data)
+
+device_specifics.json
+
 # Ignore image files and other file formats related to plots.
 *.png
 *.svg
