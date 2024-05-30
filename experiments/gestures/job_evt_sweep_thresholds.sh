@@ -22,6 +22,6 @@ for TH in $TH_SWEEP
 do
     for i in $( seq 1 $N_TRIALS )
     do
-        python3 -m experiments.gestures.run --threshold_scale $TH
+        python3 -m experiments.gestures.run --event_based --threshold_scale $TH
     done
 done

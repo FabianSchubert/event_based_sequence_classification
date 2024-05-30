@@ -14,7 +14,7 @@ device_specifics.json
 # Ignore *_CODE folders
 *_CODE/
 
-__pycache__
+**/__pycache__/
 *.py[cod]
 *$py.class
 

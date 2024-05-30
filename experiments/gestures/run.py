@@ -35,7 +35,6 @@ N_O = SETTINGS["N_O"]
 DT = SETTINGS["DT"]
 TAU_EVIDENCE = SETTINGS["TAU_EVIDENCE"]
 N_EPOCHS = SETTINGS["N_EPOCHS"]
-EVENT_BASED = SETTINGS["EVENT_BASED"]
 EVIDENCE_THRESHOLD = SETTINGS["EVIDENCE_THRESHOLD"]
 MOD_PARAMS = SETTINGS["MOD_PARAMS"]
 N_FOLDS = SETTINGS["N_FOLDS"]
@@ -49,7 +48,7 @@ R_EMBED = SETTINGS["R_EMBED"]
 N_EMBED = SETTINGS["N_EMBED"]
 R_STEP_FACTOR = SETTINGS["R_STEP_FACTOR"]
 
-with open(os.path.join("device_specifics.json", "r")) as f:
+with open("device_specifics.json", "r") as f:
     DEVICE_SPECIFICS = json.load(f)
 
 DATASET_PATH = DEVICE_SPECIFICS["PATH_GESTURE_DATA"]
@@ -62,9 +61,16 @@ parser.add_argument(
     help="scale the threshold for the hidden and the output layer",
 )
 
+parser.add_argument(
+    "--event_based", action=argparse.BooleanOptionalAction, default=False
+)
+
+
 args = parser.parse_args()
 
 TH_SCALE = args.threshold_scale
+
+EVENT_BASED = args.event_based
 
 SETTINGS["TH_SCALE"] = TH_SCALE
 

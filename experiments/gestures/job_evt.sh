@@ -8,5 +8,5 @@ cd ../..
 
 for i in $( seq 1 $NJOBS )
 do
-    python3 -m experiments.gestures.run
+    python3 -m experiments.gestures.run --event_based
 done
