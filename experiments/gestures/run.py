@@ -49,6 +49,10 @@ R_EMBED = SETTINGS["R_EMBED"]
 N_EMBED = SETTINGS["N_EMBED"]
 R_STEP_FACTOR = SETTINGS["R_STEP_FACTOR"]
 
+with open(os.path.join("device_specifics.json", "r")) as f:
+    DEVICE_SPECIFICS = json.load(f)
+
+DATASET_PATH = DEVICE_SPECIFICS["PATH_GESTURE_DATA"]
 
 parser = argparse.ArgumentParser(description="Gesture classification")
 parser.add_argument(
@@ -71,9 +75,7 @@ BASE_FOLD = os.path.dirname(__file__)
 
 
 train_data, test_data = generate_train_test_split(
-    dataDir="/home/jetsonnx/repos/UHH-IMU-gestures-comparison/dataSets/",
-    #dataDir="/its/home/fs388/repos/UHH-IMU-gestures-comparison/gesture_dataset/dataSets/",
-    #dataDir="/home/fabian/Work/Repos/UHH-IMU-gestures-comparison/gesture_dataset/dataSets/",
+    dataDir=DATASET_PATH,
     inputFiles=INPUT_FILES,
     train_split=TRAIN_SPLIT,
     shuffle=True,
