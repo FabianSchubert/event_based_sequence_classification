@@ -1,3 +1,8 @@
+# Ignore image files and other file formats related to plots.
+*.png
+*.svg
+*.pdf
+
 # Ignore .npz files
 *.npz
 
