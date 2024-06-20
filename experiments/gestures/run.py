@@ -65,12 +65,18 @@ parser.add_argument(
     "--event_based", action=argparse.BooleanOptionalAction, default=False
 )
 
+parser.add_arguments(
+    "--rec_spikes", action=argparse.BooleanOptionalAction, default=False
+)
+
 
 args = parser.parse_args()
 
 TH_SCALE = args.threshold_scale
 
 EVENT_BASED = args.event_based
+
+REC_SPIKES = args.rec_spikes
 
 SETTINGS["TH_SCALE"] = TH_SCALE
 
@@ -139,8 +145,8 @@ network = NetworkGestureBufferFF(
     EVENT_BASED,
     MOD_PARAMS,
     n_batch=N_BATCH,
-    spike_recoring_pops=SPIKE_RECORDING_POPS,
-    max_spike_recording_steps=MAX_SPIKE_RECORDING_STEPS,
+    spike_recoring_pops=SPIKE_RECORDING_POPS if REC_SPIKES else [],
+    max_spike_recording_steps=MAX_SPIKE_RECORDING_STEPS if REC_SPIKES else 0,
     input_mode=INPUT_MODE,
 )
 
